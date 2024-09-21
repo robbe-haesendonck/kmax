@@ -1,45 +1,20 @@
-import sys
 import pickle
 import pdb
-trace = pdb.set_trace
+
 import z3
-import kmax.vcommon as CM
-from dd.autoref import BDD
 
 import kmax.settings
+import kmax.vcommon as CM
+trace = pdb.set_trace
+
+
 mlog = CM.getLogger(__name__, kmax.settings.logger_level)
-
-# warning: this is not well encapsulated.  multiple runs in same process may not work properly
-bdd_lib = BDD()
-
-# todo: implement with dd package
-def bdd_one(): return bdd_lib.true
-def bdd_zero(): return bdd_lib.false
-def bdd_ithvar(i):
-    bdd_lib.add_var(i)
-    return bdd_lib.var(i)
-def bdd_init(): pass
-def bdd_destroy(): pass
-
-def conj(a, b): return None if a is None or b is None else a & b
-def disj(a, b): return None if a is None or b is None else a | b
-def neg(a): return None if a is None else ~a
-def isbddfalse(b): return b == bdd_lib.false
-
-def bdd_solutions(b):
-    d = bdd_lib.pick(b)
-    n = bdd_lib.count(b)
-    print(n)
-    expression = []
-    solutions = [d for d in bdd_lib.pick_iter(b)]
-    return solutions
 
 class CondDef(tuple):
     def __new__(cls, cond, zcond, mdef):
         return super(CondDef, cls).__new__(cls, (cond, zcond, mdef))
     
     def __init__(self, cond, zcond, mdef):
-        # assert isinstance(cond, pycudd.DdNode), cond
         assert z3.is_expr(zcond)
         assert mdef is None or isinstance(mdef, str), mdef  #CONFIG_A, 'y', 'm'
         self.cond = cond
@@ -48,20 +23,22 @@ class CondDef(tuple):
 
     def __str__(self, printCond=None):
         if not printCond:
-            return "{}".format(self.mdef)
+            return f"{self.mdef}"
         else:
-            return "({}, {}, {})".format(self.cond, self.zcond, self.mdef)
+            return f"({self.cond}, {self.zcond}, {self.mdef})"
 
 
 class Multiverse(list):
-    def __init__(self, ls=[]):
-        #assert allisinstance(cd, CondDef) for cd in ls), ls
-        
+    def __init__(self, bdd, ls=None):
+        self.bdd = bdd
+        if ls is None:
+            ls = []
         list.__init__(self, ls)
 
     def __str__(self, printCond=None):
         return "CondDefs([{}])".format(
-            ', '.join([p.__str__(printCond) for p in self]))
+            ', '.join([p.__str__(printCond) for p in self])
+        )
     
     def dedup(self):
         uniqs = set(cd.mdef for cd in self)
@@ -72,11 +49,11 @@ class Multiverse(list):
         for cond, zcond, val in self:
             if val in cache:
                 c, zc = cache[val]
-                cache[val] = (kmax.alg.disj(c, cond), z3.Or(zc, zcond)) #disj
+                cache[val] = (self.bdd.disj(c, cond), z3.Or(zc, zcond)) #disj
             else:
                 cache[val] = (cond, zcond)
 
-        mv = Multiverse([CondDef(c, zc, v)
+        mv = Multiverse(self.bdd, [CondDef(c, zc, v)
                          for v, (c, zc)  in cache.items()])
         assert mv
         return mv
