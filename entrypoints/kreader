@@ -4,9 +4,6 @@ import sys
 import os
 import argparse
 import z3
-import regex
-import random
-import subprocess
 import kmax.about
 from kmax.common import get_kmax_constraints, unpickle_kmax_file, info
 try:

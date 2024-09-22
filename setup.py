@@ -1,5 +1,5 @@
 import os
-from setuptools import setup, Extension
+from setuptools import find_packages, setup, Extension
 
 # Utility function to read the README file.
 # Used for the long_description.  It's nice, because now 1) we have a top level
@@ -34,14 +34,14 @@ setup(
     license = "GPLv2+",
     keywords = "makefile kconfig kbuild configurations kmax kclause klocalizer",
     url = "https://github.com/paulgazz/kmax",
-    packages=['kmax', 'pymake'],
+    packages=find_packages(include=['kmax', 'kmax.*', 'pymake']),
     ext_modules = [ kextractor_next_20210426, kextractor_next_20200430, kextractor_3_19, kextractor_4_12_8, kextractor_4_18, kextractor_3_2, ],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Topic :: Utilities",
         "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
     ],
-    scripts=['kmax/kmax', 'kmax/kmaxall', 'kmax/kclause', 'kmax/klocalizer', 'kmax/kextract', 'kmax/kextractlinux', 'kmax/kreader', 'kmax/kismet', 'kmax/koverage'],
+    scripts=['entrypoints/kmax', 'entrypoints/kmaxall', 'entrypoints/kclause', 'entrypoints/klocalizer', 'entrypoints/kextract', 'entrypoints/kextractlinux', 'entrypoints/kreader', 'entrypoints/kismet', 'entrypoints/koverage'],
     install_requires=[
         'enum34',
         'regex',
