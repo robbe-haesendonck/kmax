@@ -20,7 +20,6 @@ class Run:
     def __init__(self) -> None:
         self.results = Results()
         self.kbuild = Kbuild()
-        print(f"Kbuild: {self.kbuild}")
     
     def run(self, makefiledirs):
         """
